@@ -1,0 +1,9 @@
+novabank-lead-scoring/
+│
+├── README.md (or README.txt)     <-- Submission landing page & step-by-step instructions
+├── novabank_analysis.R           <-- Clean, commented, end-to-end R script / notebook
+├── bank_marketing.csv            <-- Cleaned raw dataset (UCI Bank Marketing)
+├── app.R                         <-- R-Shiny application code (shinyapp_precall)
+└── outputs/                      <-- Generated plots & model artifacts
+    ├── sub_rate_by_job.png
+    └── age_distribution.png
