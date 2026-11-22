@@ -1,0 +1,5 @@
+Database Entity,Record Count,Financial Scope,Primary Function
+dim_vehicles,488 Assets,$14.2M Fleet Asset Base,"Asset master, purchase prices & depreciation schedules"
+fact_reservations,"37,737 Agreements",$3.37M Revenue at Risk,"Rental transactions, station demand, duration & no-shows"
+fact_maintenance_logs,"8,804 Work Orders",$695.2k Vendor Spend,"Repairs, parts vs. labor split & odometer tracking"
+Active Operating Fleet,76 Commercial Units,100% Star-Schema Validated,Current active deployment subject to predictive scoring

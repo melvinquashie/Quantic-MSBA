@@ -1,0 +1,4 @@
+Engine Focus,Algorithm Architecture,Target Variable,Holdout Test Metric,Operational Implementation
+Predictive Maintenance (Week 6),Random Forest (ranger) vs Logistic Regression,target_high_failure_risk (Binary),ROC-AUC: 1.000 | Accuracy: 100%,Pre-dispatch mechanical inspection gating
+Demand Churn & No-Show (Week 7),"Random Forest (ranger, 300 trees)",target_churn (Cancelled or No-Show),ROC-AUC: 0.993 | Accuracy: 96.8% | Precision: 93.7%,Station-specific dynamic overbooking multipliers
+TCO De-Fleeting Optimizer (Week 8),Non-linear Parametric Least Squares (nls),Optimal Retirement km (arg min TCO/km),"Optimal Threshold: 250,000 km",Immediate disposal of sub-economic units (>250k km)

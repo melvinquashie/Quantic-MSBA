@@ -1,0 +1,5 @@
+Lifecycle Action Category,Odometer Threshold (km),Active Vehicle Count,Prescriptive Fleet Action
+Overdue for Disposal (Sub-economic),"> 287,500 km (> 1.15x ceiling)",1 Unit (~400k km),Immediate salvage / auction disposal. High acute breakdown risk.
+In Optimal Retirement Window,"250,000 – 287,500 km",0 Units,De-fleet upon completion of current contractual cycle.
+Approaching Retirement (Plan Disposal),"200,000 – 249,999 km",3 Units,Restrict to short-haul urban rentals; schedule replacement capital.
+Prime Economic Operating Window,"< 200,000 km",72 Units,Unrestricted deployment across all commercial rental operations.

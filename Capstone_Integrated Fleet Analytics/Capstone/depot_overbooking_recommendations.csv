@@ -1,0 +1,4 @@
+pickup_location,total_bookings,no_show_cancellations,historical_churn_rate,recommended_buffer_pct,recommended_overbooking_multiplier
+LAPAM,640,372,58.12,138.8,2.39
+HDQTR,23732,3972,16.74,20.1,1.2
+KEMP,13364,128,0.96,1,1.01

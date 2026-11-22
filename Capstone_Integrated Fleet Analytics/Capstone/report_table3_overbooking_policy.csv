@@ -1,0 +1,4 @@
+Depot Station,Booking Volume,Historical Churn Rate,Recommended Buffer,Overbooking Multiplier,Mandated Policy Guideline
+Kempinski Hotel (KEMP),"13,364",0.96%,+1.0%,1.01x,Strict 1:1 inventory reservation. Preserve zero-failure VIP service levels.
+Headquarters (HDQTR),"23,732",16.74%,+20.1%,1.20x,Dynamic 1.20x overbooking permitted on standard sedan and SUV inventory.
+La Palm Beach (LAPAM),640,58.12%,+138.8%,2.39x (Policy Restricted),Do NOT overbook. Mandate credit card prepayment or 24-hr reconfirmation.

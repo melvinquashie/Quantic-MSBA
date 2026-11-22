@@ -1,0 +1,637 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2870
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;\f1\fnil\fcharset77 ZapfDingbatsITC;\f2\fnil\fcharset0 AppleSymbols;
+}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 \
+R version 4.5.2 (2025-10-31) -- "[Not] Part in a Rumble"\
+Copyright (C) 2025 The R Foundation for Statistical Computing\
+Platform: aarch64-apple-darwin20\
+\
+R is free software and comes with ABSOLUTELY NO WARRANTY.\
+You are welcome to redistribute it under certain conditions.\
+Type 'license()' or 'licence()' for distribution details.\
+\
+  Natural language support but running in an English locale\
+\
+R is a collaborative project with many contributors.\
+Type 'contributors()' for more information and\
+'citation()' on how to cite R or R packages in publications.\
+\
+Type 'demo()' for some demos, 'help()' for on-line help, or\
+'help.start()' for an HTML browser interface to help.\
+Type 'q()' to quit R.\
+\
+[Workspace loaded from ~/Documents/Quantic MSBA/Capstone/Capstone/.RData]\
+\
+> # ==============================================================================\
+> # Fleet Management Capstone - Week 7: Demand Leakage & No-Show Engine\
+> # ==============================================================================\
+> \
+> # ------------------------------------------------------------------------------\
+> # 1. Environment Reset & Dependencies\
+> # ------------------------------------------------------------------------------\
+> rm(list = ls())\
+> gc()\
+          used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)\
+Ncells 2715650 145.1    5351104 285.8         NA  5351104 285.8\
+Vcells 5421095  41.4   19314226 147.4      16384 24142768 184.2\
+> \
+> required_pkgs <- c("tidyverse", "tidymodels", "ranger")\
+> new_pkgs <- required_pkgs[!(required_pkgs %in% installed.packages()[, "Package"])]\
+> if (length(new_pkgs) > 0) install.packages(new_pkgs)\
+> \
+> library(tidyverse)\
+\uc0\u9472 \u9472  Attaching core tidyverse packages \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  tidyverse 2.0.0 \u9472 \u9472 \
+
+\f1 \uc0\u10004 
+\f0  dplyr     1.2.1     
+\f1 \uc0\u10004 
+\f0  readr     2.2.0\
+
+\f1 \uc0\u10004 
+\f0  forcats   1.0.1     
+\f1 \uc0\u10004 
+\f0  stringr   1.6.0\
+
+\f1 \uc0\u10004 
+\f0  ggplot2   4.0.3     
+\f1 \uc0\u10004 
+\f0  tibble    3.3.1\
+
+\f1 \uc0\u10004 
+\f0  lubridate 1.9.5     
+\f1 \uc0\u10004 
+\f0  tidyr     1.3.2\
+
+\f1 \uc0\u10004 
+\f0  purrr     1.2.2     \
+\uc0\u9472 \u9472  Conflicts \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  tidyverse_conflicts() \u9472 \u9472 \
+
+\f1 \uc0\u10006 
+\f0  dplyr::filter() masks stats::filter()\
+
+\f1 \uc0\u10006 
+\f0  dplyr::lag()    masks stats::lag()\
+
+\f2 \uc0\u8505 
+\f0  Use the conflicted package to force all conflicts to become errors\
+> library(tidymodels)\
+\uc0\u9472 \u9472  Attaching packages \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  tidymodels 1.5.0 \u9472 \u9472 \
+
+\f1 \uc0\u10004 
+\f0  broom        1.0.13     
+\f1 \uc0\u10004 
+\f0  rsample      1.3.2 \
+
+\f1 \uc0\u10004 
+\f0  dials        1.4.4      
+\f1 \uc0\u10004 
+\f0  tailor       0.1.0 \
+
+\f1 \uc0\u10004 
+\f0  infer        1.1.0      
+\f1 \uc0\u10004 
+\f0  tune         2.1.0 \
+
+\f1 \uc0\u10004 
+\f0  modeldata    1.6.0      
+\f1 \uc0\u10004 
+\f0  workflows    1.3.0 \
+
+\f1 \uc0\u10004 
+\f0  parsnip      1.6.1      
+\f1 \uc0\u10004 
+\f0  workflowsets 1.1.1 \
+
+\f1 \uc0\u10004 
+\f0  recipes      1.4.0      
+\f1 \uc0\u10004 
+\f0  yardstick    1.4.0 \
+\uc0\u9472 \u9472  Conflicts \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472  tidymodels_conflicts() \u9472 \u9472 \
+
+\f1 \uc0\u10006 
+\f0  scales::discard() masks purrr::discard()\
+
+\f1 \uc0\u10006 
+\f0  dplyr::filter()   masks stats::filter()\
+
+\f1 \uc0\u10006 
+\f0  recipes::fixed()  masks stringr::fixed()\
+
+\f1 \uc0\u10006 
+\f0  dplyr::lag()      masks stats::lag()\
+
+\f1 \uc0\u10006 
+\f0  yardstick::spec() masks readr::spec()\
+
+\f1 \uc0\u10006 
+\f0  recipes::step()   masks stats::step()\
+\'95 Use tidymodels_prefer() to resolve common conflicts.\
+> library(ranger)\
+ranger 0.18.0 using 2 threads (default). Change with num.threads in ranger() and predict(), options(Ncpus = N), options(ranger.num.threads = N) or environment variable R_RANGER_NUM_THREADS.\
+> \
+> set.seed(42)\
+> \
+> # ------------------------------------------------------------------------------\
+> # 2. Ingest Data & Preprocessing Setup\
+> # ------------------------------------------------------------------------------\
+> # Ensure "demand_churn_features.csv" is in your R working directory\
+> df_raw <- read_csv("demand_churn_features.csv")\
+Rows: 37736 Columns: 14                                                          \
+\uc0\u9472 \u9472  Column specification \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+Delimiter: ","\
+chr (6): reservation_id, booking_status, pickup_location, return_location, ve...\
+dbl (8): target_churn, is_same_location_return, scheduled_duration_days, depo...\
+\
+
+\f2 \uc0\u8505 
+\f0  Use `spec()` to retrieve the full column specification for this data.\
+
+\f2 \uc0\u8505 
+\f0  Specify the column types or set `show_col_types = FALSE` to quiet this message.\
+> \
+> # Clean target factor and define predictor matrix\
+> df_model <- df_raw %>%\
++   mutate(\
++     target_churn = factor(\
++       if_else(as.numeric(target_churn) == 1, "Churn", "Fulfilled"),\
++       levels = c("Churn", "Fulfilled")\
++     ),\
++     pickup_location = as.factor(pickup_location),\
++     vehicle_class   = as.factor(vehicle_class),\
++     booked_by_channel = as.factor(booked_by_channel),\
++     pickup_day_of_week = as.factor(pickup_day_of_week),\
++     pickup_month = as.factor(pickup_month)\
++   ) %>%\
++   select(\
++     target_churn,\
++     pickup_location,\
++     is_same_location_return,\
++     vehicle_class,\
++     booked_by_channel,\
++     scheduled_duration_days,\
++     deposit_amount,\
++     pickup_day_of_week,\
++     pickup_hour,\
++     pickup_month,\
++     is_weekend_pickup\
++   )\
+> \
+> cat("\\n--- Full Reservation Portfolio Churn Distribution ---\\n")\
+\
+--- Full Reservation Portfolio Churn Distribution ---\
+> print(table(df_model$target_churn))\
+\
+    Churn Fulfilled \
+     4472     33264 \
+> \
+> # ------------------------------------------------------------------------------\
+> # 3. Stratified Partitioning (75% Train / 25% Test)\
+> # ------------------------------------------------------------------------------\
+> data_split <- initial_split(df_model, prop = 0.75, strata = target_churn)\
+> train_data <- training(data_split)\
+> test_data  <- testing(data_split)\
+> \
+> cat("\\n--- Holdout Test Distribution (N ~ 9,430) ---\\n")\
+\
+--- Holdout Test Distribution (N ~ 9,430) ---\
+> print(table(test_data$target_churn))\
+\
+    Churn Fulfilled \
+     1118      8316 \
+> \
+> # ------------------------------------------------------------------------------\
+> # 4. Recipe & High-Cardinality Pooling\
+> # ------------------------------------------------------------------------------\
+> churn_recipe <- recipe(target_churn ~ ., data = train_data) %>%\
++   step_other(booked_by_channel, threshold = 0.02, other = "Other_Agent") %>%\
++   step_other(vehicle_class, threshold = 0.02, other = "Other_Class") %>%\
++   step_other(pickup_location, threshold = 0.01, other = "Other_Depot") %>%\
++   step_dummy(all_nominal_predictors()) %>%\
++   step_normalize(all_numeric_predictors()) %>%\
++   step_zv(all_predictors())\
+> \
+> # 1. Baseline: Logistic Regression\
+> logit_spec <- logistic_reg() %>%\
++   set_engine("glm") %>%\
++   set_mode("classification")\
+> \
+> logit_wf <- workflow() %>%\
++   add_recipe(churn_recipe) %>%\
++   add_model(logit_spec)\
+> \
+> # 2. Production Engine: Random Forest\
+> rf_spec <- rand_forest(trees = 300, min_n = 10) %>%\
++   set_engine("ranger", importance = "impurity") %>%\
++   set_mode("classification")\
+> \
+> rf_wf <- workflow() %>%\
++   add_recipe(churn_recipe) %>%\
++   add_model(rf_spec)\
+> \
+> # ------------------------------------------------------------------------------\
+> # 5. Model Training & Test Set Prediction\
+> # ------------------------------------------------------------------------------\
+> cat("\\nTraining Logistic Regression and Random Forest models on ~28,300 reservations...\\n")\
+\
+Training Logistic Regression and Random Forest models on ~28,300 reservations...\
+> logit_fit <- fit(logit_wf, data = train_data)\
+Warning message:\
+glm.fit: fitted probabilities numerically 0 or 1 occurred \
+> rf_fit    <- fit(rf_wf, data = train_data)\
+> \
+> # Score Logistic Regression\
+> results_logit <- test_data %>%\
++   select(target_churn) %>%\
++   bind_cols(predict(logit_fit, test_data, type = "prob")) %>%\
++   bind_cols(predict(logit_fit, test_data, type = "class")) %>%\
++   mutate(model = "Logistic Regression")\
+> \
+> # Score Random Forest\
+> results_rf <- test_data %>%\
++   select(target_churn) %>%\
++   bind_cols(predict(rf_fit, test_data, type = "prob")) %>%\
++   bind_cols(predict(rf_fit, test_data, type = "class")) %>%\
++   mutate(model = "Random Forest")\
+> \
+> # ------------------------------------------------------------------------------\
+> # 6. Evaluation Metrics & Confusion Matrices\
+> # ------------------------------------------------------------------------------\
+> acc_rf  <- accuracy(results_rf, truth = target_churn, estimate = .pred_class)\
+> auc_rf  <- roc_auc(results_rf, truth = target_churn, .pred_Churn, event_level = "first")\
+> sens_rf <- sens(results_rf, truth = target_churn, estimate = .pred_class, event_level = "first")\
+> spec_rf <- spec(results_rf, truth = target_churn, estimate = .pred_class, event_level = "first")\
+> \
+> rf_perf <- bind_rows(acc_rf, auc_rf, sens_rf, spec_rf) %>%\
++   mutate(model = "Random Forest")\
+> \
+> cat("\\n================ RANDOM FOREST TEST PERFORMANCE ================\\n")\
+\
+================ RANDOM FOREST TEST PERFORMANCE ================\
+> print(rf_perf)\
+# A tibble: 4 \'d7 4\
+  .metric  .estimator .estimate model        \
+  <chr>    <chr>          <dbl> <chr>        \
+1 accuracy binary         0.968 Random Forest\
+2 roc_auc  binary         0.993 Random Forest\
+3 sens     binary         0.784 Random Forest\
+4 spec     binary         0.993 Random Forest\
+> \
+> cat("\\n================ RANDOM FOREST CONFUSION MATRIX ================\\n")\
+\
+================ RANDOM FOREST CONFUSION MATRIX ================\
+> print(conf_mat(results_rf, truth = target_churn, estimate = .pred_class))\
+           Truth\
+Prediction  Churn Fulfilled\
+  Churn       877        59\
+  Fulfilled   241      8257\
+> \
+> # ------------------------------------------------------------------------------\
+> # 7. Visual Exhibits for Capstone Report\
+> # ------------------------------------------------------------------------------\
+> # Exhibit 1: ROC Curve\
+> rf_roc <- results_rf %>%\
++   roc_curve(truth = target_churn, .pred_Churn, event_level = "first")\
+> \
+> roc_plot <- autoplot(rf_roc) +\
++   labs(\
++     title = "Demand Leakage & Churn ROC Curve (Random Forest)",\
++     subtitle = paste0("Test Set Holdout | ROC-AUC: ", round(auc_rf$.estimate, 4)),\
++     x = "False Positive Rate (1 - Specificity)",\
++     y = "True Positive Rate (Sensitivity)"\
++   ) +\
++   theme_minimal(base_size = 12)\
+> \
+> print(roc_plot)\
+> ggsave("demand_leakage_roc_curve.png", roc_plot, width = 7, height = 5, dpi = 300)\
+> \
+> # Exhibit 2: Gini Impurity Feature Importance\
+> rf_obj <- extract_fit_parsnip(rf_fit)$fit\
+> imp_vals <- rf_obj$variable.importance\
+> \
+> var_imp_df <- tibble(\
++   Variable = names(imp_vals),\
++   Importance = as.numeric(imp_vals)\
++ ) %>%\
++   arrange(desc(Importance)) %>%\
++   slice_head(n = 8)\
+> \
+> vip_plot <- ggplot(var_imp_df, aes(x = reorder(Variable, Importance), y = Importance)) +\
++   geom_col(fill = "#2CA02C", width = 0.7) +\
++   coord_flip() +\
++   labs(\
++     title = "Primary Drivers of Reservation Churn & No-Shows",\
++     subtitle = "Gini Impurity Metric from Random Forest",\
++     x = "Reservation Signal",\
++     y = "Variable Importance"\
++   ) +\
++   theme_minimal(base_size = 12)\
+> \
+> print(vip_plot)\
+> ggsave("demand_leakage_feature_importance.png", vip_plot, width = 7, height = 5, dpi = 300)\
+> \
+> # ------------------------------------------------------------------------------\
+> # 8. Prescriptive Overbooking Multiplier by Depot\
+> # ------------------------------------------------------------------------------\
+> # Calculate operational overbooking buffers to protect revenue\
+> overbooking_strategy <- df_raw %>%\
++   group_by(pickup_location) %>%\
++   summarise(\
++     total_bookings = n(),\
++     no_show_cancellations = sum(target_churn),\
++     historical_churn_rate = round(mean(target_churn) * 100, 2),\
++     # Buffer formula: 1 / (1 - Churn Rate) capped conservatively\
++     recommended_buffer_pct = round((mean(target_churn) / (1 - mean(target_churn))) * 100, 1),\
++     recommended_overbooking_multiplier = round(1 / (1 - mean(target_churn)), 2)\
++   ) %>%\
++   filter(total_bookings >= 100) %>%\
++   arrange(desc(historical_churn_rate))\
+> \
+> write_csv(overbooking_strategy, "depot_overbooking_recommendations.csv")\
+>                                                                              \
+> cat("\\n================ PRESCRIPTIVE OVERBOOKING MATRIX BY DEPOT ================\\n")\
+\
+================ PRESCRIPTIVE OVERBOOKING MATRIX BY DEPOT ================\
+> print(overbooking_strategy)\
+# A tibble: 3 \'d7 6\
+  pickup_location total_bookings no_show_cancellations historical_churn_rate\
+  <chr>                    <int>                 <dbl>                 <dbl>\
+1 LAPAM                      640                   372                 58.1 \
+2 HDQTR                    23732                  3972                 16.7 \
+3 KEMP                     13364                   128                  0.96\
+# 
+\f2 \uc0\u8505 
+\f0  2 more variables: recommended_buffer_pct <dbl>,\
+#   recommended_overbooking_multiplier <dbl>\
+> # ==============================================================================\
+> # Fleet Management Capstone - Week 8: TCO & Optimal De-Fleeting Optimizer\
+> # ==============================================================================\
+> \
+> # ------------------------------------------------------------------------------\
+> # 1. Environment Reset & Dependencies\
+> # ------------------------------------------------------------------------------\
+> rm(list = ls())\
+> gc()\
+          used  (Mb) gc trigger  (Mb) limit (Mb) max used  (Mb)\
+Ncells 3399592 181.6    5351104 285.8         NA  5351104 285.8\
+Vcells 6800602  51.9   23257071 177.5      16384 24142768 184.2\
+> \
+> required_pkgs <- c("tidyverse", "scales", "broom")\
+> new_pkgs <- required_pkgs[!(required_pkgs %in% installed.packages()[, "Package"])]\
+> if (length(new_pkgs) > 0) install.packages(new_pkgs)\
+> \
+> library(tidyverse)\
+> library(scales)\
+> library(broom)\
+> \
+> set.seed(42)\
+> \
+> # ------------------------------------------------------------------------------\
+> # 2. Ingest Data & Hygiene Filtering\
+> # ------------------------------------------------------------------------------\
+> df_raw <- read_csv("defleeting_tco_summary.csv")\
+Rows: 488 Columns: 17                                                            \
+\uc0\u9472 \u9472  Column specification \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \u9472 \
+Delimiter: ","\
+chr   (6): vehicle_id, make, model, category, current_status, exit_date\
+dbl  (10): model_year, service_life_years, purchase_cost, actual_sale_price, ...\
+date  (1): acq_date\
+\
+
+\f2 \uc0\u8505 
+\f0  Use `spec()` to retrieve the full column specification for this data.\
+
+\f2 \uc0\u8505 
+\f0  Specify the column types or set `show_col_types = FALSE` to quiet this message.\
+> \
+> # Filter out zero-mileage records and calculate fundamental cost per km metrics\
+> df_tco <- df_raw %>%\
++   filter(\
++     purchase_cost > 5000,\
++     lifetime_odometer_km >= 5000,\
++     service_life_years > 0.25\
++   ) %>%\
++   mutate(\
++     # Total Cost of Ownership Incurred\
++     total_tco_incurred = net_depreciation_incurred + cumulative_maint_spend,\
++     \
++     # Unitized Cost Rates per Kilometer (USD / km)\
++     depr_cost_per_km   = net_depreciation_incurred / lifetime_odometer_km,\
++     maint_cost_per_km  = cumulative_maint_spend / lifetime_odometer_km,\
++     tco_per_km         = total_tco_incurred / lifetime_odometer_km,\
++     \
++     # Unitized Cost Rates per Year (USD / Year)\
++     maint_cost_per_year = cumulative_maint_spend / service_life_years,\
++     depr_cost_per_year  = net_depreciation_incurred / service_life_years,\
++     tco_per_year        = total_tco_incurred / service_life_years\
++   )\
+> \
+> cat("\\n--- Cleaned Asset Portfolio for Lifecycle Analysis (N =", nrow(df_tco), ") ---\\n")\
+\
+--- Cleaned Asset Portfolio for Lifecycle Analysis (N = 84 ) ---\
+> print(table(df_tco$current_status))\
+\
+                       Available                De-fleeted / Sold \
+                              21                               12 \
+                      Non-Active Non-Rev. Transfer (Hdqtr-47876T) \
+                               1                                1 \
+Non-Rev. Transfer (Hdqtr-47877T) Non-Rev. Transfer (Hdqtr-47878T) \
+                               1                                1 \
+Non-Rev. Transfer (Hdqtr-47879T) Non-Rev. Transfer (Hdqtr-47931T) \
+                               1                                1 \
+Non-Rev. Transfer (Hdqtr-47957T) Non-Rev. Transfer (Hdqtr-47959T) \
+                               1                                1 \
+                         On Rent \
+                              43 \
+> \
+> # ------------------------------------------------------------------------------\
+> # 3. Parametric Lifecycle Modeling (Fitting TCO Curves by Mileage)\
+> # ------------------------------------------------------------------------------\
+> # Fit Non-linear Power/Log Curves to estimate cumulative maintenance as a function of km:\
+> # Maint(km) = a * (km)^b\
+> maint_model <- nls(\
++   cumulative_maint_spend ~ a * (lifetime_odometer_km)^b,\
++   data = df_tco,\
++   start = list(a = 0.05, b = 1.05)\
++ )\
+> \
+> params <- coef(maint_model)\
+> a_param <- params["a"]\
+> b_param <- params["b"]\
+> \
+> cat("\\n================ MAINTENANCE ACCELERATION FUNCTION ================\\n")\
+\
+================ MAINTENANCE ACCELERATION FUNCTION ================\
+> cat("Cumulative Maint(km) =", round(a_param, 6), "* (km) ^", round(b_param, 4), "\\n")\
+Cumulative Maint(km) = 17.5962 * (km) ^ 0.4916 \
+> \
+> # Mean fleet-wide purchase cost and residual floor (20% salvage)\
+> mean_purchase <- mean(df_tco$purchase_cost, na.rm = TRUE)\
+> residual_pct  <- 0.20\
+> capital_depreciable <- mean_purchase * (1 - residual_pct)\
+> \
+> # ------------------------------------------------------------------------------\
+> # 4. Numerical Optimization: Finding the Minimum TCO / km\
+> # ------------------------------------------------------------------------------\
+> # Define continuous mileage grid from 10,000 km to 250,000 km\
+> km_grid <- tibble(km = seq(10000, 250000, by = 1000)) %>%\
++   mutate(\
++     # Cumulative depreciation modeled as standard linear-to-asymptotic fleet curve\
++     cum_depr = capital_depreciable * (1 - exp(-km / 75000)),\
++     cum_maint = a_param * (km)^b_param,\
++     cum_tco = cum_depr + cum_maint,\
++     \
++     # Cost per km curves\
++     depr_per_km  = cum_depr / km,\
++     maint_per_km = cum_maint / km,\
++     tco_per_km   = cum_tco / km\
++   )\
+> \
+> # Extract Global Minimum TCO / km\
+> optimal_row <- km_grid %>%\
++   slice_min(tco_per_km, n = 1)\
+> \
+> optimal_km <- optimal_row$km\
+> min_cost_per_km <- optimal_row$tco_per_km\
+> \
+> cat("\\n================ EMPIRICAL OPTIMAL RETIREMENT THRESHOLD ================\\n")\
+\
+================ EMPIRICAL OPTIMAL RETIREMENT THRESHOLD ================\
+> cat("Fleet Optimal De-Fleeting Odometer :", comma(optimal_km), "km\\n")\
+Fleet Optimal De-Fleeting Odometer : 250,000 km\
+> cat("Minimum Total Cost of Ownership    : $", round(min_cost_per_km, 3), "/ km\\n")\
+Minimum Total Cost of Ownership    : $ 0.146 / km\
+> cat("Depreciation Rate at Exit          : $", round(optimal_row$depr_per_km, 3), "/ km\\n")\
+Depreciation Rate at Exit          : $ 0.114 / km\
+> cat("Maintenance Rate at Exit           : $", round(optimal_row$maint_per_km, 3), "/ km\\n")\
+Maintenance Rate at Exit           : $ 0.032 / km\
+> \
+> # ------------------------------------------------------------------------------\
+> # 5. Visual Exhibits for Capstone Report\
+> # ------------------------------------------------------------------------------\
+> # Exhibit 1: The Classic U-Shaped TCO Economic Curve\
+> tco_curve_plot <- ggplot(km_grid, aes(x = km)) +\
++   geom_line(aes(y = depr_per_km, color = "Depreciation / km"), linewidth = 1.1, linetype = "dashed") +\
++   geom_line(aes(y = maint_per_km, color = "Maintenance / km"), linewidth = 1.1, linetype = "dashed") +\
++   geom_line(aes(y = tco_per_km, color = "Total Cost of Ownership (TCO) / km"), linewidth = 1.4) +\
++   geom_vline(xintercept = optimal_km, linetype = "dotted", color = "#D95F02", linewidth = 1) +\
++   annotate(\
++     "text", x = optimal_km + 8000, y = min_cost_per_km * 1.3,\
++     label = paste0("Optimal Retirement Point\\n", comma(optimal_km), " km ($", round(min_cost_per_km, 2), "/km)"),\
++     hjust = 0, size = 4, fontface = "bold", color = "#D95F02"\
++   ) +\
++   scale_x_continuous(labels = comma, breaks = seq(0, 250000, by = 50000)) +\
++   scale_y_continuous(labels = dollar_format(accuracy = 0.05), limits = c(0, max(km_grid$tco_per_km[km_grid$km > 20000]) * 1.1)) +\
++   scale_color_manual(\
++     name = "Cost Component",\
++     values = c(\
++       "Depreciation / km" = "#1F77B4",\
++       "Maintenance / km" = "#E41A1C",\
++       "Total Cost of Ownership (TCO) / km" = "#2CA02C"\
++     )\
++   ) +\
++   labs(\
++     title = "Fleet Total Cost of Ownership (TCO) Curve & De-Fleeting Inflection",\
++     subtitle = "Trade-off between amortized capital depreciation and escalating repair costs",\
++     x = "Cumulative Vehicle Distance (Kilometers)",\
++     y = "Unit Cost (USD / km)"\
++   ) +\
++   theme_minimal(base_size = 12) +\
++   theme(legend.position = "bottom")\
+> \
+> print(tco_curve_plot)\
+Warning message:\
+Removed 4 rows containing missing values or values outside the scale range\
+(`geom_line()`). \
+> ggsave("defleeting_tco_economic_curve.png", tco_curve_plot, width = 8, height = 5.5, dpi = 300)\
+Warning message:\
+Removed 4 rows containing missing values or values outside the scale range\
+(`geom_line()`). \
+> \
+> # Exhibit 2: Active Fleet De-Fleeting Urgency Matrix (76 Active Assets)\
+> active_eval <- df_tco %>%\
++   filter(current_status != "De-fleeted / Sold") %>%\
++   mutate(\
++     odometer_gap_to_optimal = lifetime_odometer_km - optimal_km,\
++     retirement_status = case_when(\
++       lifetime_odometer_km >= (optimal_km * 1.15) ~ "Overdue for Disposal (Sub-economic)",\
++       lifetime_odometer_km >= optimal_km          ~ "In Optimal Retirement Window",\
++       lifetime_odometer_km >= (optimal_km * 0.80) ~ "Approaching Retirement (Plan Disposal)",\
++       TRUE                                        ~ "Prime Economic Operating Window"\
++     )\
++   )\
+> \
+> retirement_summary_plot <- ggplot(active_eval, aes(x = lifetime_odometer_km, y = cumulative_maint_spend, color = retirement_status)) +\
++   geom_point(aes(size = purchase_cost), alpha = 0.8) +\
++   geom_vline(xintercept = optimal_km, linetype = "dashed", color = "darkred") +\
++   scale_x_continuous(labels = comma) +\
++   scale_y_continuous(labels = dollar) +\
++   scale_size_continuous(labels = dollar, name = "Purchase Cost") +\
++   scale_color_manual(\
++     name = "Asset Lifecycle Action",\
++     values = c(\
++       "Overdue for Disposal (Sub-economic)" = "#E41A1C",\
++       "In Optimal Retirement Window" = "#FF7F00",\
++       "Approaching Retirement (Plan Disposal)" = "#377EB8",\
++       "Prime Economic Operating Window" = "#4DAF4A"\
++     )\
++   ) +\
++   labs(\
++     title = "Active Fleet Asset Lifecycle Staging",\
++     subtitle = paste0("Evaluation of 76 Active Units Against ", comma(optimal_km), " km TCO Benchmark"),\
++     x = "Current Odometer (km)",\
++     y = "Cumulative Maintenance Spend (USD)"\
++   ) +\
++   theme_minimal(base_size = 11) +\
++   theme(legend.position = "bottom", legend.box = "vertical")\
+> \
+> print(retirement_summary_plot)\
+> ggsave("active_fleet_defleeting_urgency.png", retirement_summary_plot, width = 8.5, height = 6, dpi = 300)\
+> \
+> # ------------------------------------------------------------------------------\
+> # 6. Export Active Fleet De-Fleeting Action Register\
+> # ------------------------------------------------------------------------------\
+> active_defleet_register <- active_eval %>%\
++   select(\
++     vehicle_id, make, model, model_year, category,\
++     lifetime_odometer_km, service_life_years, purchase_cost,\
++     cumulative_maint_spend, tco_per_km, retirement_status\
++   ) %>%\
++   arrange(desc(lifetime_odometer_km))\
+> \
+> write_csv(active_defleet_register, "active_fleet_defleeting_recommendations.csv")\
+>                                                                              \
+> cat("\\n================ RETIREMENT ACTION BREAKDOWN (ACTIVE FLEET) ================\\n")\
+\
+================ RETIREMENT ACTION BREAKDOWN (ACTIVE FLEET) ================\
+> print(table(active_eval$retirement_status))\
+\
+Approaching Retirement (Plan Disposal)    Overdue for Disposal (Sub-economic) \
+                                     3                                      1 \
+       Prime Economic Operating Window \
+                                    68 \
+> \
+> cat("\\n--- Top 10 Priority Candidates for Capital De-Fleeting ---\\n")\
+\
+--- Top 10 Priority Candidates for Capital De-Fleeting ---\
+> print(head(active_defleet_register %>% filter(grepl("Disposal|Optimal", retirement_status)), 10))\
+# A tibble: 4 \'d7 11\
+  vehicle_id make    model               model_year category lifetime_odometer_km\
+  <chr>      <chr>   <chr>                    <dbl> <chr>                   <dbl>\
+1 AV0599     HYUNDAI UNIVERSE LUXURY-NEW       2023 CH45                   401254\
+2 AV0395     TOYOTA  COASTER                   2016 BS20                   235638\
+3 AV05262    HYUNDAI CRETA                     2017 LUX2                   218001\
+4 AV08281    TOYOTA  HIACE                     2015 MV14                   205959\
+# 
+\f2 \uc0\u8505 
+\f0  5 more variables: service_life_years <dbl>, purchase_cost <dbl>,\
+#   cumulative_maint_spend <dbl>, tco_per_km <dbl>, retirement_status <chr>\
+\
+\
+\
+\
+}
